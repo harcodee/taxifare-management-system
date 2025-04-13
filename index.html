@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taxi Fare Management</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background: linear-gradient(45deg, #ff9800, #ff5722); color: white; }
+        h1 { margin-top: 20px; }
+        form, .fares { margin: 20px auto; width: 50%; background: white; padding: 20px; border-radius: 10px; color: black; }
+        input, button { padding: 10px; margin: 5px; width: 90%; border-radius: 5px; border: none; }
+        button { background-color: #ff5722; color: white; cursor: pointer; }
+        button:hover { background-color: #e64a19; }
+        table { width: 100%; margin-top: 10px; border-collapse: collapse; }
+        th, td { border: 1px solid black; padding: 8px; text-align: center; }
+    </style>
+</head>
+<body>
+    <h1>🚖 Taxi Fare Management System</h1>
+    <form id="fareForm">
+        <input type="number" id="passengerID" placeholder="Passenger ID" required>
+        <input type="text" id="pickupLocation" placeholder="Pickup Location" required>
+        <input type="text" id="dropLocation" placeholder="Drop Location" required>
+        <input type="number" id="fareAmount" placeholder="Fare Amount" required>
+        <input type="date" id="travelDate" required>
+        <button type="submit">Submit Fare</button>
+    </form>
+    <div class="fares">
+        <h2>🚖 Fare Records</h2>
+        <button onclick="fetchFares()"> Refresh</button>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Passenger</th>
+                    <th>Pickup</th>
+                    <th>Drop</th>
+                    <th>Fare</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody id="fareList"></tbody>
+        </table>
+    </div>
+    <script>
+        const API_URL = 'http://localhost:3000';
+        document.getElementById('fareForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                PassengerID: document.getElementById('passengerID').value,
+                PickupLocation: document.getElementById('pickupLocation').value,
+                DropLocation: document.getElementById('dropLocation').value,
+                FareAmount: document.getElementById('fareAmount').value,
+                TravelDate: document.getElementById('travelDate').value
+            };
+            const response = await fetch(`${API_URL}/add-fare`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            alert(result.message);
+            fetchFares();
+        });
+        async function fetchFares() {
+            const response = await fetch(`${API_URL}/fares`);
+            const fares = await response.json();
+            const fareList = document.getElementById('fareList');
+            fareList.innerHTML = fares.map(f => `
+                <tr>
+                    <td>${f.FareID}</td>
+                    <td>${f.PassengerID}</td>
+                    <td>${f.PickupLocation}</td>
+                    <td>${f.DropLocation}</td>
+                    <td>₹${f.FareAmount}</td>
+                    <td>${new Date(f.TravelDate).toLocaleDateString()}</td>
+                </tr>
+            `).join('');
+        }
+        fetchFares();
+    </script>
+</body>
+</html>
